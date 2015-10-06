@@ -1,0 +1,35 @@
+body 
+{ 
+	background: white; 
+	color: black; 
+	font: 13px verdana, halvetica, sans-serif; 
+}
+
+h1 
+{ 
+	color: blue; 
+}
+
+h2 
+{ 
+	color: red; 
+}
+
+.proto 
+{ 
+	font-weight: bold; 
+}
+
+.vuln 
+{ 
+	color: green; 
+	font-weight: bold; 
+}
+
+.error 
+{ 
+	color: red; 
+	margin: 0 0 5px 20px; 
+	padding: 0 0 0 20px;
+	border-left: 1px solid black;
+}

@@ -1,0 +1,30 @@
+-----------
+ CHANGES
+-----------
+
+Changes for 0.2.0
+
+- renamed to webfuzzer
+
+- fixed a bug which cause the scan to be against port 80 only
+	(thanks A.J. Securiteinfo.com)
+
+- added simple cookies support
+
+- you can now post or get the initial page supplying parameters
+	(to authenticate or log in a web site section for example)
+
+- added switch for html output and a stylesheet
+
+- the resolve function is called now only in main
+
+- cleaned some code (structure pointers instead of too many arguments)
+
+- xencode function cleared
+
+- added xhtml in allowed extension
+
+- fixed a format bug in main
+
+- fixed some minor bugs
+
